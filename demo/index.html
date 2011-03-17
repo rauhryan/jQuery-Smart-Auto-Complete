@@ -70,6 +70,7 @@
 
         //example 6
         $("#textarea_autocomplete_field").smartAutoComplete({source: "countries.json", maxResults: 5, delay: 200 } );
+		 $("#textarea_autocomplete_field2").smartAutoComplete({source: "countries.json", maxResults: 5, delay: 200 } );
         $("#textarea_autocomplete_field").bind({
 
            keyIn: function(ev){
@@ -119,9 +120,153 @@
           resultFormatter: function(r){ return ("<li>" + r.replace(new RegExp($(this.context).val(),"gi"), "<strong>$&</strong>") + "</li>"); }
 
         });
-
+		
+		var select = $('#jazz_musicians_with_select').hide(),
+			selected = select.children(':selected'),
+			value = selected.val() || '';
+		
+		$('<input>')
+			.insertAfter(select)
+			.val(value)
+			.smartAutoComplete({
+				delay: 300,
+				minCharLimit: 0,
+				typeAhead: true,
+				typeAheadExtractor: function(index, results){
+					return results[index].value;
+				},
+				forceSelect: true,
+				filter: function(term, source){
+					
+					var matcher = new RegExp(term.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
+					var source = select.children( "option" ).map(function() {
+										var text = $( this ).text();
+										if ( this.value && ( !term || matcher.test(text) ) )
+											return {
+												value: text,
+												option: this
+											};
+									});
+					var results =  $.grep(source, function(value) {
+					  return matcher.test( value.value );
+					});
+					return results;
+						
+				},
+				resultFormatter : function(r) {
+					return ("<li>" + r.value.replace(new RegExp($(this.context).val(),"gi"), "<strong>$&</strong>") + "</li>");
+				}
+			})
+			.bind({
+				itemSelect:function(ev, item){ 
+					var context = ev.target;
+					var options = $(context).data("smart-autocomplete");
+					options.rawResults[options.currentSelection].option.selected = true;
+				}
+			});;
+		
     });
-  </script>
+	</script>
+	<noscript>
+	(function( $ ) {
+		$.widget( "ui.combobox", {
+			_create: function() {
+				var self = this,
+					select = this.element.hide(),
+					selected = select.children( ":selected" ),
+					value = selected.val() ? selected.text() : "";
+				var input = this.input = $( "<input>" )
+					.insertAfter( select )
+					.val( value )
+					.autocomplete({
+						delay: 0,
+						minLength: 0,
+						source: function( request, response ) {
+							var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+							response( select.children( "option" ).map(function() {
+								var text = $( this ).text();
+								if ( this.value && ( !request.term || matcher.test(text) ) )
+									return {
+										label: text.replace(
+											new RegExp(
+												"(?![^&;]+;)(?!<[^<>]*)(" +
+												$.ui.autocomplete.escapeRegex(request.term) +
+												")(?![^<>]*>)(?![^&;]+;)", "gi"
+											), "<strong>$1</strong>" ),
+										value: text,
+										option: this
+									};
+							}) );
+						},
+						select: function( event, ui ) {
+							ui.item.option.selected = true;
+							self._trigger( "selected", event, {
+								item: ui.item.option
+							});
+						},
+						change: function( event, ui ) {
+							if ( !ui.item ) {
+								var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+									valid = false;
+								select.children( "option" ).each(function() {
+									if ( $( this ).text().match( matcher ) ) {
+										this.selected = valid = true;
+										return false;
+									}
+								});
+								if ( !valid ) {
+									// remove invalid value, as it didn't match anything
+									$( this ).val( "" );
+									select.val( "" );
+									input.data( "autocomplete" ).term = "";
+									return false;
+								}
+							}
+						}
+					})
+					.addClass( "ui-widget ui-widget-content ui-corner-left" );
+
+				input.data( "autocomplete" )._renderItem = function( ul, item ) {
+					return $( "<li></li>" )
+						.data( "item.autocomplete", item )
+						.append( "<a>" + item.label + "</a>" )
+						.appendTo( ul );
+				};
+
+				this.button = $( "<button type='button'>&nbsp;</button>" )
+					.attr( "tabIndex", -1 )
+					.attr( "title", "Show All Items" )
+					.insertAfter( input )
+					.button({
+						icons: {
+							primary: "ui-icon-triangle-1-s"
+						},
+						text: false
+					})
+					.removeClass( "ui-corner-all" )
+					.addClass( "ui-corner-right ui-button-icon" )
+					.click(function() {
+						// close if already visible
+						if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+							input.autocomplete( "close" );
+							return;
+						}
+
+						// pass empty string as value to search for, displaying all results
+						input.autocomplete( "search", "" );
+						input.focus();
+					});
+			},
+
+			destroy: function() {
+				this.input.remove();
+				this.button.remove();
+				this.element.show();
+				$.Widget.prototype.destroy.call( this );
+			}
+		});
+	})( jQuery );
+  </noscript>
 
   <style>
     /* General styles */
@@ -233,7 +378,7 @@
             </fieldset>
 
             <fieldset id="example_6">
-              <legend>Example 6</legend>
+              <legend>Example 6a</legend>
 
               <p>This implements a Comma-seperated list, with auto-compeltion. To achieve this we need to bind handlers to custom events emitted by the plugin.</p>
 
@@ -243,7 +388,53 @@
                 <p class='note'>You can enter mulitple values seperated by comma</p>
               </div>
             </fieldset>
+			  <fieldset id="example_6">
+              <legend>Example 6b</legend>
 
+              <p>This implements a textarea, with auto-compeltion.</p>
+
+              <div>
+                <label for="textarea_autocomplete_field2">Favorite Countries</label>
+                <textarea  rows="3" cols="25" autocomplete="off" id="textarea_autocomplete_field2"></textarea>
+                
+              </div>
+            </fieldset>
+			<fieldset id="example_8">
+              <legend>Example 8</legend>
+
+              <p>Combo box as source</p>
+
+              <div>
+                <label for="jazz_musicians_with_select">Favorite Jazz Musician</label>
+                
+				<select id="jazz_musicians_with_select" >
+					<option value="">-- Select Jazz Musician -- </option>
+					<option value="Scott Joplin">Scott Joplin</option>
+					<option value="Charles Bolden">Charles Bolden</option>
+					<option value="Duke Ellington">Duke Ellington</option>
+					<option value="Louis Armstrong">Louis Armstrong</option>
+					<option value="Earl Hines">Earl Hines</option>
+					<option value="Fats Waller">Fats Waller</option>
+					<option value="Count Basie">Count Basie</option>
+					<option value="Benny Goodman">Benny Goodman</option>
+					<option value="Sun Ra">Sun Ra</option>
+					<option value="Thelonious Monk">Thelonious Monk</option>
+					<option value="Dizzy Gillespie">Dizzy Gillespie</option>
+					<option value="Charlie Parker">Charlie Parker</option>
+					<option value="Dave Brubeck">Dave Brubeck</option>
+					<option value="Charles Mingus">Charles Mingus</option>
+					<option value="Oscar Peterson">Oscar Peterson</option>
+					<option value="Miles Davis">Miles Davis</option>
+					<option value="John Coltrane">John Coltrane</option>
+					<option value="Chet Baker">Chet Baker</option>
+					<option value="Ornette Coleman">Ornette Coleman</option>
+					<option value="Wynton Marsalis">Wynton Marsalis</option>
+					<option value="Billie Holiday">Billie Holiday</option>
+					<option value="Ella Fitzgerald">Ella Fitzgerald</option>
+					<option value="Sarah Vaughan">Sarah Vaughan</option>
+				</select>
+              </div>
+            </fieldset>
             <fieldset id="example_7">
               <legend>Example 7</legend>
 
@@ -254,6 +445,7 @@
                 <input type="text" autocomplete="off" id="jazz_musicians_with_highlight_field"/>
               </div>
             </fieldset>
+
 
 
 

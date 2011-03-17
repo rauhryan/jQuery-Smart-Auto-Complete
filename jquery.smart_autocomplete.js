@@ -64,7 +64,9 @@
                                     });
 
                                  }
-
+	var	escapeRegex = function( value ) {
+							return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+						}
     var default_options = {
                             minCharLimit: 1, 
                             maxResults: null,
@@ -124,9 +126,14 @@
 
                             setItemSelected: function(val){
                               this.itemSelected = val;
-                            }
+                            },
+							
+							typeAheadExtractor : function(index, results){
+								return results[index];
+							}
 
     };
+	
 
     //define the default events
     $.event.special.keyIn = {
@@ -213,8 +220,8 @@
         var raw_results = ev.smartAutocompleteData.results; 
 
         //type ahead
-        if(options.typeAhead && (raw_results[0].substr(0, $(context).val().length) == $(context).val()) ){
-          var suggestion = raw_results[0]; //options.typeAheadExtractor($(context).val(), raw_results[0]); 
+        if(options.typeAhead && (options.typeAheadExtractor(0, raw_results).substr(0, $(context).val().length) == $(context).val()) ){
+          var suggestion = options.typeAheadExtractor(0, raw_results); //options.typeAheadExtractor($(context).val(), raw_results[0]); 
           
           //add new typeAhead field
           $(context).before("<input class='smart_autocomplete_type_ahead_field' type='text' autocomplete='off' disabled='disabled' value='" + suggestion + "'/>");
@@ -352,7 +359,8 @@
 
     return this.each(function(i) { 
       //set the options
-      var options = $.extend(default_options, $(this).data("smart-autocomplete"), passed_options);
+      var options = $.extend(default_options, $(this).data("smart-autocomplete"), passed_options),
+			$this = $(this);
       //set the context
       options['context'] = this;
 
@@ -366,10 +374,10 @@
         options.alignResultsContainer = true;
       }
 
-      $(this).data("smart-autocomplete", options);
+      $this.data("smart-autocomplete", options);
 
       // bind user events
-      $(this).keyup(function(ev){
+      $this.keyup(function(ev){
         //get the options
         var options = $(this).data("smart-autocomplete");
 
@@ -426,8 +434,10 @@
 
           return false;
         }
-
-        else {
+		else if(ev.keyCode == '9'){
+			return !$this.is('textarea');
+		}
+		else {
          var current_char_count = $(options.context).val().length;
          //check whether the string has modified
          if(options.originalCharCount == current_char_count)
@@ -446,12 +456,27 @@
 
         }
       });
+		$this.keydown(function(ev){
+			//tab key
+			if(ev.keyCode == '9'){
+				var type_ahead_field = $(options.context).prev('.smart_autocomplete_type_ahead_field');
+			  if(options.resultsContainer && $(options.resultsContainer).is(':visible')){
+				var current_selection = options.currentSelection || 0;
+				var result_suggestions = $(options.resultsContainer).children();
 
-      $(this).focus(function(){
+				$(options.context).trigger('itemSelect', [ result_suggestions[current_selection] ] );
+				return !$this.is('textarea');
+			  }
+			  else if(options.typeAhead && type_ahead_field.is(':visible'))
+				$(options.context).trigger('itemSelect', [ type_ahead_field ] );
+
+			}
+		});
+      $this.focus(function(){
         //if the field is in a form capture the return key event 
         $(this).closest("form").bind("keydown.block_for_smart_autocomplete", function(ev){
           var type_ahead_field = $(options.context).prev('.smart_autocomplete_type_ahead_field');
-          if(ev.keyCode == '13'){
+          if(ev.keyCode == '13' ){
             if(options.resultsContainer && $(options.resultsContainer).is(':visible')){
               var current_selection = options.currentSelection;
               var result_suggestions = $(options.resultsContainer).children();
@@ -483,27 +508,26 @@
       });
 
       //bind events to results container
-      $(options.resultsContainer).delegate(options.resultElement, 'mouseenter.smart_autocomplete', function(){
-        var current_selection = options.currentSelection || 0;
-        var result_suggestions = $(options.resultsContainer).children();
+      $(options.resultsContainer)
+		  .delegate(options.resultElement, 'mouseenter.smart_autocomplete', function(){
+			var current_selection = options.currentSelection || 0;
+			var result_suggestions = $(options.resultsContainer).children();
 
-        options['currentSelection'] = $(this).prevAll().length;
+			options['currentSelection'] = $(this).prevAll().length;
 
-        $(options.context).trigger('itemFocus', [this] );
-          
-      });
-
-      $(options.resultsContainer).delegate(options.resultElement, 'mouseleave.smart_autocomplete', function(){
-        $(options.context).trigger('itemUnfocus', [this] );
-      });
-
-      $(options.resultsContainer).delegate(options.resultElement, 'click.smart_autocomplete', function(){
-        $(options.context).trigger('itemSelect', [this]);
-        return false
-      });
+			$(options.context).trigger('itemFocus', [this] );
+			  
+		  })
+		  .delegate(options.resultElement, 'mouseleave.smart_autocomplete', function(){
+			$(options.context).trigger('itemUnfocus', [this] );
+		  })
+		  .delegate(options.resultElement, 'click.smart_autocomplete', function(){
+			$(options.context).trigger('itemSelect', [this]);
+			return false
+		  });
 
       //bind plugin specific events
-      $(this).bind({
+      $this.bind({
         keyIn: function(ev, query){ ev.smartAutocompleteData  = {'query': query }; },
         resultsReady: function(ev, results){ ev.smartAutocompleteData  = {'results': results }; }, 
         showResults: function(ev, results){ ev.smartAutocompleteData = {'results': results } },
