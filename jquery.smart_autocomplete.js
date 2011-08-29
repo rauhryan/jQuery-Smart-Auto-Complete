@@ -4,48 +4,48 @@
  * Copyright (c) 2011 Lakshan Perera (laktek.com)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)  licenses.
  * 
-*/
+ */
 
 /*
  Requirements: jQuery 1.5 or above
 
-  Usage:
-  $(target).smartAutoComplete({options})
+ Usage:
+ $(target).smartAutoComplete({options})
 
-  Options:
-  minCharLimit: (integer) minimum characters user have to type before invoking the autocomplete (default: 1)
-  maxResults: (integer) maximum number of results to return (default: null (unlimited))
-  delay: (integer) delay before autocomplete starts (default: 0)
-  disabled: (boolean) whether autocomplete disabled on the field (default: false)
-  forceSelect: (boolean) If set to true, field will be always filled with best matching result, without leaving the custom input.
-               Better to enable this option, if you want autocomplete field to behave similar to a HTML select field. (Check Example 2 in the demo)
-               (default: false)
-  typeAhead: (boolean) If set to true, it will offer the best matching result in grey within the field; that can be auto-completed by pressing the right arrow-key or enter.
-             This is similar to behaviour in Google Instant Search's query field (Check Example 3 in the demo) 
-             (default: false)
-  source:  (string/array) you can supply an array with items or a string containing a URL to fetch items for the source
-           this is optional if you prefer to have your own filter method 
-  filter: (function) define a custom function that would return matching items to the entered text (this will override the default filtering algorithm)
-          should return an array or a Deferred object (ajax call)
-          parameters available: term, source 
-  resultFormatter: (function) the function you supply here will be called to format the output of an individual result.
-                   should return a string
-                   parameters available: result 
-  resultsContainer: (selector) to which element(s) the result should be appended.
-  resultElement: (selector) references to the result elements collection (e.g. li, div.result) 
+ Options:
+ minCharLimit: (integer) minimum characters user have to type before invoking the autocomplete (default: 1)
+ maxResults: (integer) maximum number of results to return (default: null (unlimited))
+ delay: (integer) delay before autocomplete starts (default: 0)
+ disabled: (boolean) whether autocomplete disabled on the field (default: false)
+ forceSelect: (boolean) If set to true, field will be always filled with best matching result, without leaving the custom input.
+ Better to enable this option, if you want autocomplete field to behave similar to a HTML select field. (Check Example 2 in the demo)
+ (default: false)
+ typeAhead: (boolean) If set to true, it will offer the best matching result in grey within the field; that can be auto-completed by pressing the right arrow-key or enter.
+ This is similar to behaviour in Google Instant Search's query field (Check Example 3 in the demo) 
+ (default: false)
+ source:  (string/array) you can supply an array with items or a string containing a URL to fetch items for the source
+ this is optional if you prefer to have your own filter method 
+ filter: (function) define a custom function that would return matching items to the entered text (this will override the default filtering algorithm)
+ should return an array or a Deferred object (ajax call)
+ parameters available: term, source 
+ resultFormatter: (function) the function you supply here will be called to format the output of an individual result.
+ should return a string
+ parameters available: result 
+ resultsContainer: (selector) to which element(s) the result should be appended.
+ resultElement: (selector) references to the result elements collection (e.g. li, div.result) 
 
-  Events:
-  keyIn: fires when user types into the field (parameters: query)
-  resultsReady: fires when the filter function returns (parameters: results)
-  showResults: fires when results are shown (parameters: results)
-  noResults: fires when filter returns an empty array
-  itemSelect: fires when user selects an item from the result list (paramters: item)
-  itemFocus: fires when user highlights an item with mouse or arrow keys (paramters: item)
-  itemUnfocus: fires when user moves out from an highlighted item (paramters: item)
-  lostFocus: fires when autocomplete field loses focus by user clicking outside of the field or focusing on another field. Also, this event is fired when a value is selected
+ Events:
+ keyIn: fires when user types into the field (parameters: query)
+ resultsReady: fires when the filter function returns (parameters: results)
+ showResults: fires when results are shown (parameters: results)
+ noResults: fires when filter returns an empty array
+ itemSelect: fires when user selects an item from the result list (paramters: item)
+ itemFocus: fires when user highlights an item with mouse or arrow keys (paramters: item)
+ itemUnfocus: fires when user moves out from an highlighted item (paramters: item)
+ lostFocus: fires when autocomplete field loses focus by user clicking outside of the field or focusing on another field. Also, this event is fired when a value is selected
 
  })
-*/
+ */
 
 (function ($) {
     $.fn.smartAutoComplete = function () {
@@ -121,7 +121,7 @@
 
             setCurrentSelectionToContext: function () {
                 if (this.rawResults.length > 0 && this.currentSelection >= 0)
-                    $(this.context).val(this.rawResults[(this.currentSelection)]);
+                $(this.context).val(this.rawResults[(this.currentSelection)]);
             },
 
             setItemSelected: function (val) {
@@ -149,7 +149,7 @@
                 var query = ev.smartAutocompleteData.query;
 
                 if (options.disabled)
-                    return false;
+                return false;
 
                 //set item selected property
                 options.setItemSelected(false);
@@ -178,7 +178,7 @@
 
                 //exit if smart complete is disabled
                 if (options.disabled)
-                    return false;
+                return false;
 
                 //clear all previous results 
                 $(context).smartAutoComplete().clearResults();
@@ -196,12 +196,12 @@
                 var formatted_results = $.map(results, function (result) {
                     return options.resultFormatter.apply(options, [result]);
                 });
-                
+
                 var formatted_results_html = formatted_results.join("");
 
                 //append the results to the container
                 if (options.resultsContainer)
-                    $(options.resultsContainer).append(formatted_results_html);
+                $(options.resultsContainer).append(formatted_results_html);
 
                 //trigger results ready event
                 $(context).trigger('showResults', [results]);
@@ -243,27 +243,27 @@
                         color: 'silver'
                     });
 
-                  
+
                 }
                 //trigger item over for first item
                 options.currentSelection = 0;
                 if (results_container)
-                    $(context).trigger('itemFocus', results_container.children()[options.currentSelection]);
+                $(context).trigger('itemFocus', results_container.children()[options.currentSelection]);
                 //show the results container after aligning it with the field 
                 if (results_container) {
                     if (options.alignResultsContainer) {
                         if ($.ui && $.ui.position) {
                             results_container
-                                .css({
-                                    width: function () { return $(context).width(); },
-                                    zIndex: 9999
-                                }).show()
-                                .position({
-                                    my: 'left top',
-                                    at: 'left bottom',
-                                    of: $(context),
-                                    collision: "none"
-                                });
+                            .css({
+                                width: function () { return $(context).width(); },
+                                zIndex: 9999
+                            }).show()
+                            .position({
+                                my: 'left top',
+                                at: 'left bottom',
+                                of: $(context),
+                                collision: "none"
+                            });
                         } else {
                             results_container.css({
                                 position: "absolute",
@@ -355,14 +355,14 @@
 
                 //if force select is selected and no item is selected, clear currently entered text 
                 if (options.forceSelect && !options.itemSelected)
-                    $(options.context).val("");
+                $(options.context).val("");
 
                 //clear results
                 options.clearResults();
 
                 //hide the results container
                 if (options.resultsContainer)
-                    $(options.resultsContainer).hide();
+                $(options.resultsContainer).hide();
 
                 //set current selection to null
                 options.currentSelection = null;
@@ -374,7 +374,7 @@
         return this.each(function (i) {
             //set the options
             var options = $.extend(default_options, $(this).data("smart-autocomplete"), passed_options),
-			$this = $(this);
+            $this = $(this);
             //set the context
             options['context'] = this;
 
@@ -403,15 +403,15 @@
                         var result_suggestions = $(options.resultsContainer).children();
 
                         if (current_selection >= 0)
-                            $(options.context).trigger('itemUnfocus', result_suggestions[current_selection]);
+                        $(options.context).trigger('itemUnfocus', result_suggestions[current_selection]);
 
                         if (--current_selection <= 0)
-                            current_selection = 0;
+                        current_selection = 0;
 
                         options['currentSelection'] = current_selection;
 
                         $(options.context).trigger('itemFocus', [result_suggestions[current_selection]]);
-						//$(options.resultsContainer).scrollTo($(options.resultsContainer).children()[current_selection], 150);
+                        //$(options.resultsContainer).scrollTo($(options.resultsContainer).children()[current_selection], 150);
                     }
                 }
 
@@ -423,15 +423,15 @@
                         var result_suggestions = $(options.resultsContainer).children();
 
                         if (current_selection >= 0)
-                            $(options.context).trigger('itemUnfocus', result_suggestions[current_selection]);
+                        $(options.context).trigger('itemUnfocus', result_suggestions[current_selection]);
 
                         if (isNaN(current_selection) || (++current_selection >= result_suggestions.length))
-                            current_selection = 0;
+                        current_selection = 0;
 
                         options['currentSelection'] = current_selection;
 
                         $(options.context).trigger('itemFocus', [result_suggestions[current_selection]]);
-						//$(options.resultsContainer).scrollTo($(options.resultsContainer).children()[current_selection], 150);
+                        //$(options.resultsContainer).scrollTo($(options.resultsContainer).children()[current_selection], 150);
                     }
 
                 }
@@ -446,7 +446,7 @@
                         $(options.context).trigger('itemSelect', [result_suggestions[current_selection]]);
                     }
                     else if (options.typeAhead && type_ahead_field.is(':visible'))
-                        $(options.context).trigger('itemSelect', [type_ahead_field]);
+                    $(options.context).trigger('itemSelect', [type_ahead_field]);
 
                     return false;
                 }
@@ -457,7 +457,7 @@
                     var current_char_count = $(options.context).val().length;
                     //check whether the string has modified
                     if (options.originalCharCount == current_char_count)
-                        return;
+                    return;
 
                     //check minimum number of characters are typed
                     if (current_char_count >= options.minCharLimit) {
@@ -484,7 +484,7 @@
                         return !$this.is('textarea');
                     }
                     else if (options.typeAhead && type_ahead_field.is(':visible'))
-                        $(options.context).trigger('itemSelect', [type_ahead_field]);
+                    $(options.context).trigger('itemSelect', [type_ahead_field]);
                     $(options.context).trigger('lostFocus');
                 }
             });
@@ -515,7 +515,7 @@
             //check for loosing focus on smart complete field and results container
             $(document).bind("focusin click", function (ev) {
                 if ($(options.resultsContainer).is(':visible')) {
-					// Had to wrap with selector and use .get to get the dom node to pass into this function, I think this error only occured after we supplied our own results container.
+                    // Had to wrap with selector and use .get to get the dom node to pass into this function, I think this error only occured after we supplied our own results container.
                     var elemIsParent = $.contains($(options.resultsContainer).get(0), ev.target);
                     if (ev.target == options.resultsContainer[0] || ev.target == options.context || elemIsParent) return
 
@@ -526,22 +526,22 @@
 
             //bind events to results container
             $(options.resultsContainer)
-		  .delegate(options.resultElement, 'mouseenter.smart_autocomplete', function () {
-		      var current_selection = options.currentSelection || 0;
-		      var result_suggestions = $(options.resultsContainer).children();
+            .delegate(options.resultElement, 'mouseenter.smart_autocomplete', function () {
+                var current_selection = options.currentSelection || 0;
+                var result_suggestions = $(options.resultsContainer).children();
 
-		      options['currentSelection'] = $(this).prevAll().length;
+                options['currentSelection'] = $(this).prevAll().length;
 
-		      $(options.context).trigger('itemFocus', [this]);
+                $(options.context).trigger('itemFocus', [this]);
 
-		  })
-		  .delegate(options.resultElement, 'mouseleave.smart_autocomplete', function () {
-		      $(options.context).trigger('itemUnfocus', [this]);
-		  })
-		  .delegate(options.resultElement, 'click.smart_autocomplete', function () {
-		      $(options.context).trigger('itemSelect', [this]);
-		      return false
-		  });
+            })
+            .delegate(options.resultElement, 'mouseleave.smart_autocomplete', function () {
+                $(options.context).trigger('itemUnfocus', [this]);
+            })
+            .delegate(options.resultElement, 'click.smart_autocomplete', function () {
+                $(options.context).trigger('itemSelect', [this]);
+                return false
+            });
 
             //bind plugin specific events
             $this.bind({
